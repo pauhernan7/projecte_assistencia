@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Llista d'usuaris</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Llista d'usuaris</h1>
+        <button id="goToUsuarisBtn">Veure usuaris</button>
+    </div>
+
+    <script>
+        // Aquí s'afegeix l'esdeveniment que redirigeix a la pàgina que llista els alumnes
+        // quan es fa clic al botó
+        document.getElementById("goToUsuarisBtn").addEventListener("click", function() {
+            window.location.href = "usuaris.html"; // Redirecció a la pàgina d'alumnes
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+A53,MediaTic,5,Josep Lopez,DAW,2,B
+A01,MediaTic,1,Pere Perez,DAW,1,B
+T41,MediaTic,4,Martina Garcia,SMX,2,C
