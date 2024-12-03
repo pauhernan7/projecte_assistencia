@@ -1,3 +1,4 @@
+from sqlalchemy.sql import func
 from sqlalchemy import Column, Integer, String, Enum, Date, Time, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -10,8 +11,9 @@ class Usuario(Base):
     email = Column(String(100), unique=True, index=True)
     contraseña = Column(String(255))
     rol = Column(Enum("admin", "alumno", "profesor"))
-    fecha_registro = Column(Date)
-    uid = Column(String(50), unique=True)
+    fecha_registro = Column(Date, server_default=func.current_date())  # Valor predeterminado
+    uid = Column(String(50), unique=True, index=True)
+    asistencias = relationship("Asistencia", back_populates="usuario")
 
 class Asistencia(Base):
     __tablename__ = "asistencias"
@@ -21,3 +23,4 @@ class Asistencia(Base):
     hora_entrada = Column(Time)
     hora_salida = Column(Time, nullable=True)
     estado = Column(Enum("presente", "ausente", "tarde"))
+    usuario = relationship("Usuario", back_populates="asistencias")

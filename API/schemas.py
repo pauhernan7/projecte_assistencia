@@ -1,30 +1,16 @@
 from pydantic import BaseModel
-from typing import Optional, Literal
-
-class UsuarioBase(BaseModel):
-    nombre: str
-    apellido: str
-    email: str
-    rol: Literal['alumno', 'admin', 'profesor']  # Solo acepta estos valores
-    uid: str
-
-class UsuarioCreate(UsuarioBase):
-    contraseña: str
-
-class UsuarioResponse(UsuarioBase):
-    id: int
-
-    class Config:
-        orm_mode = True
+from datetime import date, time
+from typing import Optional
 
 class AsistenciaBase(BaseModel):
     usuario_id: int
-    fecha: str
-    hora_entrada: str
+    fecha: date
+    hora_entrada: time
     estado: str
+    hora_salida: time
 
 class AsistenciaResponse(AsistenciaBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
