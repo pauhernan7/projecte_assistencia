@@ -1,12 +1,185 @@
-from sqlalchemy.orm import Session
-from . import models, schemas
+from datetime import date, time, datetime, timedelta
+import mysql.connector
+from .database import conectar_db, cerrar_conexion
+from typing import Optional, Tuple, Dict, Any
 
-def crear_asistencia(db: Session, asistencia: schemas.AsistenciaBase):
-    db_asistencia = models.Asistencia(**asistencia.dict())
-    db.add(db_asistencia)
-    db.commit()
-    db.refresh(db_asistencia)
-    return db_asistencia
+def crear_usuario(nombre: str, apellido: str, email: str, contraseña: str, rol: str, uid: str):
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor(dictionary=True)
+            
+            # Verificaciones de unicidad
+            if _existe_email(cursor, email):
+                return None, "El email ya está registrado"
+            if _existe_uid(cursor, uid):
+                return None, "El UID ya está registrado"
 
-def obtener_usuario(db: Session, usuario_id: int):
-    return db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
+            # Insertar usuario
+            sql = """
+            INSERT INTO usuarios (nombre, apellido, email, contraseña, rol, uid)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(sql, (nombre, apellido, email, contraseña, rol, uid))
+            conexion.commit()
+            
+            # Obtener el usuario recién creado
+            nuevo_id = cursor.lastrowid
+            return obtener_usuario(nuevo_id)[0], None
+
+        except Exception as e:
+            return None, f"Error al crear usuario: {str(e)}"
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"
+
+# Funciones auxiliares para verificaciones
+def _existe_email(cursor, email: str) -> bool:
+    cursor.execute("SELECT id FROM usuarios WHERE email = %s", (email,))
+    return cursor.fetchone() is not None
+
+def _existe_uid(cursor, uid: str) -> bool:
+    cursor.execute("SELECT id FROM usuarios WHERE uid = %s", (uid,))
+    return cursor.fetchone() is not None
+
+def obtener_usuario(usuario_id: int):
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor()
+            cursor.execute("""
+                SELECT id, nombre, apellido, email, rol, uid, fecha_registro 
+                FROM usuarios 
+                WHERE id = %s
+            """, (usuario_id,))
+            
+            usuario = cursor.fetchone()
+            if usuario:
+                return {
+                    "id": usuario[0],
+                    "nombre": usuario[1],
+                    "apellido": usuario[2],
+                    "email": usuario[3],
+                    "rol": usuario[4],
+                    "uid": usuario[5],
+                    "fecha_registro": usuario[6]
+                }, None
+            return None, "Usuario no encontrado"
+            
+        except Exception as e:
+            return None, str(e)
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"
+
+def crear_asistencia(usuario_id: int, estado: str, hora_entrada: Optional[time] = None) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor(dictionary=True)
+            
+            # Verificar si el usuario existe
+            cursor.execute("SELECT id FROM usuarios WHERE id = %s", (usuario_id,))
+            if not cursor.fetchone():
+                return None, "Usuario no encontrado"
+
+            # Verificar si ya existe una asistencia para hoy
+            cursor.execute("""
+                SELECT id FROM asistencias 
+                WHERE usuario_id = %s AND fecha = CURRENT_DATE()
+            """, (usuario_id,))
+            if cursor.fetchone():
+                return None, "Ya existe una asistencia registrada hoy para este usuario"
+
+            # Insertar asistencia
+            sql = """
+            INSERT INTO asistencias (usuario_id, fecha, hora_entrada, estado)
+            VALUES (%s, CURRENT_DATE(), COALESCE(%s, CURRENT_TIME()), %s)
+            """
+            cursor.execute(sql, (usuario_id, hora_entrada, estado))
+            conexion.commit()
+            
+            # Obtener la asistencia creada con manejo de errores mejorado
+            nuevo_id = cursor.lastrowid
+            asistencia, error = obtener_asistencia(nuevo_id)
+            if error:
+                print(f"Error al obtener la asistencia creada: {error}")  # Debug
+                return None, f"La asistencia se creó pero hubo un error al recuperarla: {error}"
+            return asistencia, None
+
+        except Exception as e:
+            print(f"Error en crear_asistencia: {str(e)}")  # Debug
+            return None, f"Error al crear asistencia: {str(e)}"
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"
+
+def obtener_asistencia(asistencia_id: int) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT a.*, u.nombre, u.apellido 
+                FROM asistencias a
+                JOIN usuarios u ON a.usuario_id = u.id
+                WHERE a.id = %s
+            """, (asistencia_id,))
+            
+            asistencia = cursor.fetchone()
+            if asistencia:
+                # Convertir timedelta a time
+                if isinstance(asistencia["hora_entrada"], timedelta):
+                    asistencia["hora_entrada"] = (datetime.min + asistencia["hora_entrada"]).time()
+                if asistencia["hora_salida"] and isinstance(asistencia["hora_salida"], timedelta):
+                    asistencia["hora_salida"] = (datetime.min + asistencia["hora_salida"]).time()
+                
+                # Construir respuesta con el formato correcto
+                return {
+                    "id": asistencia["id"],
+                    "usuario_id": asistencia["usuario_id"],
+                    "fecha": asistencia["fecha"],
+                    "hora_entrada": asistencia["hora_entrada"],
+                    "hora_salida": asistencia["hora_salida"],
+                    "estado": asistencia["estado"]
+                }, None
+            return None, "Asistencia no encontrada"
+            
+        except Exception as e:
+            print(f"Error en obtener_asistencia: {str(e)}")  # Debug
+            return None, f"Error en la base de datos: {str(e)}"
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"
+
+def obtener_asistencias_usuario(usuario_id: int) -> Tuple[Optional[list], Optional[str]]:
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT a.*, u.nombre, u.apellido 
+                FROM asistencias a
+                JOIN usuarios u ON a.usuario_id = u.id
+                WHERE a.usuario_id = %s
+                ORDER BY a.fecha DESC, a.hora_entrada DESC
+            """, (usuario_id,))
+            
+            asistencias = cursor.fetchall()
+            if asistencias:
+                # Convertir timedelta a time para cada asistencia
+                for asistencia in asistencias:
+                    if isinstance(asistencia["hora_entrada"], timedelta):
+                        asistencia["hora_entrada"] = (datetime.min + asistencia["hora_entrada"]).time()
+                    if asistencia["hora_salida"] and isinstance(asistencia["hora_salida"], timedelta):
+                        asistencia["hora_salida"] = (datetime.min + asistencia["hora_salida"]).time()
+                
+                return asistencias, None
+            return [], None  # Devolvemos lista vacía en lugar de None cuando no hay asistencias
+            
+        except Exception as e:
+            print(f"Error en obtener_asistencias_usuario: {str(e)}")  # Debug
+            return None, str(e)
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"

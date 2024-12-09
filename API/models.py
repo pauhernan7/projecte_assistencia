@@ -11,16 +11,14 @@ class Usuario(Base):
     email = Column(String(100), unique=True, index=True)
     contraseña = Column(String(255))
     rol = Column(Enum("admin", "alumno", "profesor"))
-    fecha_registro = Column(Date, server_default=func.current_date())  # Valor predeterminado
+    fecha_registro = Column(Date, server_default=func.current_date())
     uid = Column(String(50), unique=True, index=True)
-    asistencias = relationship("Asistencia", back_populates="usuario")
 
 class Asistencia(Base):
     __tablename__ = "asistencias"
     id = Column(Integer, primary_key=True, index=True)
     usuario_id = Column(Integer, ForeignKey("usuarios.id"))
-    fecha = Column(Date)
-    hora_entrada = Column(Time)
+    fecha = Column(Date, default=func.current_date())
+    hora_entrada = Column(Time, default=func.current_time())
     hora_salida = Column(Time, nullable=True)
     estado = Column(Enum("presente", "ausente", "tarde"))
-    usuario = relationship("Usuario", back_populates="asistencias")
