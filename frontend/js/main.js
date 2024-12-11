@@ -30,12 +30,23 @@ document.getElementById('usuarioForm').addEventListener('submit', async (e) => {
         rol: document.getElementById('rol').value,
         uid: document.getElementById('uid').value,
     };
-    await fetchData('/usuarios/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-    });
-    cargarDashboard();
+    
+    try {
+        const response = await fetchData('/usuarios/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        if (response) {
+            alert('Usuario registrado correctamente');
+            e.target.reset(); // Limpiar el formulario
+            cargarDashboard();
+        } else {
+            throw new Error('Error al registrar el usuario');
+        }
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    }
 });
 
 // Registrar Asistencia
