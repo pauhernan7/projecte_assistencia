@@ -183,3 +183,181 @@ def obtener_asistencias_usuario(usuario_id: int) -> Tuple[Optional[list], Option
         finally:
             cerrar_conexion(conexion)
     return None, "Error de conexión a la base de datos"
+
+def obtener_estadisticas_usuario(usuario_id: int):
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor(dictionary=True)
+            
+            # Verificar si el usuario existe
+            cursor.execute("SELECT id FROM usuarios WHERE id = %s", (usuario_id,))
+            if not cursor.fetchone():
+                return None, "Usuario no encontrado"
+
+            # Obtener estadísticas
+            sql = """
+            SELECT 
+                COUNT(*) as total_registros,
+                SUM(CASE WHEN estado = 'presente' THEN 1 ELSE 0 END) as total_presente,
+                SUM(CASE WHEN estado = 'ausente' THEN 1 ELSE 0 END) as total_ausente,
+                SUM(CASE WHEN estado = 'tarde' THEN 1 ELSE 0 END) as total_tarde
+            FROM asistencias 
+            WHERE usuario_id = %s
+            """
+            cursor.execute(sql, (usuario_id,))
+            stats = cursor.fetchone()
+            
+            if stats and stats['total_registros'] > 0:
+                porcentaje = round((stats['total_presente'] / stats['total_registros']) * 100, 2)
+                return {
+                    "usuario_id": usuario_id,
+                    "porcentaje_asistencia": porcentaje,
+                    "total_presente": stats['total_presente'],
+                    "total_ausente": stats['total_ausente'],
+                    "total_tarde": stats['total_tarde']
+                }, None
+            return {
+                "usuario_id": usuario_id,
+                "porcentaje_asistencia": 0,
+                "total_presente": 0,
+                "total_ausente": 0,
+                "total_tarde": 0
+            }, None
+            
+        except Exception as e:
+            print(f"Error en obtener_estadisticas: {str(e)}")  # Debug
+            return None, f"Error en la base de datos: {str(e)}"
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"
+
+def crear_materia(nombre: str, grupo_id: int, profesor_id: int):
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor(dictionary=True)
+
+            # Verificar si el grupo existe
+            cursor.execute("SELECT id FROM grupos WHERE id = %s", (grupo_id,))
+            if not cursor.fetchone():
+                return None, "Grupo no encontrado"
+
+            # Verificar si el profesor existe y es profesor
+            cursor.execute("""
+                SELECT id FROM usuarios 
+                WHERE id = %s AND rol = 'profesor'
+            """, (profesor_id,))
+            if not cursor.fetchone():
+                return None, "Profesor no encontrado o el usuario no es profesor"
+
+            # Insertar la materia
+            cursor.execute("""
+                INSERT INTO materias (nombre, grupo_id, profesor_id)
+                VALUES (%s, %s, %s)
+            """, (nombre, grupo_id, profesor_id))
+            conexion.commit()
+            
+            nuevo_id = cursor.lastrowid
+            return {"id": nuevo_id, "nombre": nombre, "grupo_id": grupo_id, "profesor_id": profesor_id}, None
+
+        except Exception as e:
+            return None, f"Error al crear materia: {str(e)}"
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"
+
+def obtener_materias_por_grupo(grupo_id: int):
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT m.*, u.nombre as profesor_nombre, g.nombre as grupo_nombre
+                FROM materias m
+                JOIN usuarios u ON m.profesor_id = u.id
+                JOIN grupos g ON m.grupo_id = g.id
+                WHERE m.grupo_id = %s
+            """, (grupo_id,))
+            materias = cursor.fetchall()
+            return materias, None
+        except Exception as e:
+            return None, f"Error al obtener materias: {str(e)}"
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"
+
+def obtener_grupos():
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM grupos ORDER BY nombre")
+            grupos = cursor.fetchall()
+            return grupos, None
+        except Exception as e:
+            return None, f"Error al obtener grupos: {str(e)}"
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"
+
+def obtener_estadisticas_dashboard():
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor(dictionary=True)
+            
+            # Obtener total de usuarios
+            cursor.execute("SELECT COUNT(*) as total FROM usuarios")
+            total_usuarios = cursor.fetchone()['total']
+            
+            # Obtener total de asistencias
+            cursor.execute("SELECT COUNT(*) as total FROM asistencias")
+            total_asistencias = cursor.fetchone()['total']
+            
+            # Obtener total de materias
+            cursor.execute("SELECT COUNT(*) as total FROM materias")
+            total_materias = cursor.fetchone()['total']
+            
+            # Calcular porcentaje de asistencia
+            cursor.execute("""
+                SELECT 
+                    (COUNT(CASE WHEN estado = 'presente' THEN 1 END) * 100.0 / COUNT(*)) as porcentaje
+                FROM asistencias
+            """)
+            porcentaje = cursor.fetchone()['porcentaje'] or 0
+            
+            return {
+                "total_usuarios": total_usuarios,
+                "total_asistencias": total_asistencias,
+                "total_materias": total_materias,
+                "porcentaje_asistencia": round(porcentaje, 2)
+            }, None
+            
+        except Exception as e:
+            print(f"Error en obtener_estadisticas_dashboard: {str(e)}")
+            return None, f"Error al obtener estadísticas: {str(e)}"
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"
+
+def obtener_asistencias():
+    conexion = conectar_db()
+    if conexion:
+        try:
+            cursor = conexion.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT a.*, u.nombre, u.apellido
+                FROM asistencias a
+                JOIN usuarios u ON a.usuario_id = u.id
+                ORDER BY a.fecha DESC, a.hora_entrada DESC
+                LIMIT 50
+            """)
+            asistencias = cursor.fetchall()
+            return asistencias, None
+        except Exception as e:
+            print(f"Error en obtener_asistencias: {str(e)}")
+            return None, f"Error al obtener asistencias: {str(e)}"
+        finally:
+            cerrar_conexion(conexion)
+    return None, "Error de conexión a la base de datos"

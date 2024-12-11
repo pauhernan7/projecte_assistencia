@@ -1,0 +1,61 @@
+/* Variables globales */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --background-color: #f8f9fa;
+    --text-color: #343a40;
+}
+
+/* Estilos generales */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--background-color);
+    padding-top: 60px;
+}
+
+/* Dashboard cards */
+.stats-card {
+    transition: transform 0.3s ease;
+    background: white;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+}
+
+.stats-icon {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+/* Secciones */
+.section-block {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+/* Animaciones */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
+    
+    .stats-card {
+        margin-bottom: 1rem;
+    }
+}
