@@ -13,110 +13,195 @@
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
         <div class="container">
             <a class="navbar-brand" href="#"><i class="fas fa-calendar-check me-2"></i>Sistema de Asistencias</a>
         </div>
     </nav>
 
     <!-- Contenido principal -->
-    <div class="container mt-4">
+    <div class="container">
+        <!-- Dashboard -->
         <div id="dashboard" class="mb-5">
-            <h3>Dashboard</h3>
-            <div class="row">
+            <h3 class="mb-4">Dashboard</h3>
+            <div class="row g-3">
                 <div class="col-md-3">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <h5>Total Usuarios</h5>
-                            <h3 id="totalUsuarios">0</h3>
-                        </div>
+                    <div class="card text-center p-3 shadow-sm">
+                        <i class="fas fa-users fa-3x text-primary mb-2"></i>
+                        <h5>Total Usuarios</h5>
+                        <h3 id="totalUsuarios">0</h3>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <h5>Total Asistencias</h5>
-                            <h3 id="totalAsistencias">0</h3>
-                        </div>
+                    <div class="card text-center p-3 shadow-sm">
+                        <i class="fas fa-clock fa-3x text-success mb-2"></i>
+                        <h5>Total Asistencias</h5>
+                        <h3 id="totalAsistencias">0</h3>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <h5>Total Materias</h5>
-                            <h3 id="totalMaterias">0</h3>
-                        </div>
+                    <div class="card text-center p-3 shadow-sm">
+                        <i class="fas fa-book fa-3x text-warning mb-2"></i>
+                        <h5>Total Materias</h5>
+                        <h3 id="totalMaterias">0</h3>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card">
-                        <div class="card-body text-center">
-                            <h5>% Asistencia</h5>
-                            <h3 id="porcentajeAsistencia">0%</h3>
-                        </div>
+                    <div class="card text-center p-3 shadow-sm">
+                        <i class="fas fa-percentage fa-3x text-info mb-2"></i>
+                        <h5>% Asistencia</h5>
+                        <h3 id="porcentajeAsistencia">0%</h3>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Registro de Usuario -->
         <div id="usuarios" class="mb-5">
-            <h3>Registro de Usuario</h3>
-            <form id="usuarioForm">
-                <div class="mb-3">
-                    <label for="nombre" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" id="nombre" required>
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Registro de Usuario</h4>
                 </div>
-                <div class="mb-3">
-                    <label for="apellido" class="form-label">Apellido</label>
-                    <input type="text" class="form-control" id="apellido" required>
+                <div class="card-body">
+                    <form id="usuarioForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="nombre" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="nombre" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="apellido" class="form-label">Apellido</label>
+                                <input type="text" class="form-control" id="apellido" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="rol" class="form-label">Rol</label>
+                                <select class="form-control" id="rol">
+                                    <option value="admin">Admin</option>
+                                    <option value="profesor">Profesor</option>
+                                    <option value="alumno">Alumno</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="uid" class="form-label">UID</label>
+                                <input type="text" class="form-control" id="uid" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contraseña" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="contraseña" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-4">Registrar</button>
+                    </form>
                 </div>
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="email" required>
-                </div>
-                <div class="mb-3">
-                    <label for="rol" class="form-label">Rol</label>
-                    <select class="form-control" id="rol">
-                        <option value="admin">Admin</option>
-                        <option value="profesor">Profesor</option>
-                        <option value="alumno">Alumno</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="uid" class="form-label">UID</label>
-                    <input type="text" class="form-control" id="uid" required>
-                </div>
-                <div class="mb-3">
-                    <label for="contraseña" class="form-label">Contraseña</label>
-                    <input type="password" class="form-control" id="contraseña" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Registrar</button>
-            </form>
+            </div>
         </div>
 
+        <!-- Registro de Asistencia -->
         <div id="asistencias" class="mb-5">
-            <h3>Registro de Asistencia</h3>
-            <form id="asistenciaForm">
-                <div class="mb-3">
-                    <label for="usuario_id" class="form-label">ID Usuario</label>
-                    <input type="number" class="form-control" id="usuario_id" required>
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Registro de Asistencia</h4>
                 </div>
-                <div class="mb-3">
-                    <label for="estado" class="form-label">Estado</label>
-                    <select class="form-control" id="estado">
-                        <option value="presente">Presente</option>
-                        <option value="ausente">Ausente</option>
-                        <option value="tarde">Tarde</option>
-                    </select>
+                <div class="card-body">
+                    <form id="asistenciaForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="usuario_id" class="form-label">ID Usuario</label>
+                                <input type="number" class="form-control" id="usuario_id" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="estado" class="form-label">Estado</label>
+                                <select class="form-control" id="estado">
+                                    <option value="presente">Presente</option>
+                                    <option value="ausente">Ausente</option>
+                                    <option value="tarde">Tarde</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success mt-4">Registrar</button>
+                    </form>
                 </div>
-                <button type="submit" class="btn btn-success">Registrar</button>
-            </form>
+            </div>
         </div>
 
-        <div id="asistencias-list">
-            <h3>Últimas Asistencias</h3>
-            <div id="listaAsistencias" class="list-group" style="max-height: 300px; overflow-y: auto;">
-                Cargando asistencias...
+        <!-- Últimas Asistencias -->
+        <div id="asistencias-list" class="mb-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">Últimas Asistencias</h4>
+                </div>
+                <div class="card-body">
+                    <div id="listaAsistencias" class="list-group" style="max-height: 300px; overflow-y: auto;">
+                        Cargando asistencias...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12 mb-5">
+                <div id="buscarUsuario" class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Buscar Usuario</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="buscarUsuarioForm">
+                            <div class="mb-3">
+                                <label for="buscarUsuarioId" class="form-label">ID Usuario</label>
+                                <input type="number" class="form-control" id="buscarUsuarioId" required>
+                            </div>
+                            <button type="submit" class="btn btn-info">Buscar</button>
+                        </form>
+                        <div id="resultadoUsuario" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="estadisticasUsuario" class="mb-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0">Estadísticas del Usuario</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="estadisticasUsuarioForm">
+                            <div class="mb-3">
+                                <label for="usuarioEstadisticasId" class="form-label">ID Usuario</label>
+                                <input type="number" class="form-control" id="usuarioEstadisticasId" required>
+                            </div>
+                            <button type="submit" class="btn btn-secondary">Ver Estadísticas</button>
+                        </form>
+                        <div id="resultadoEstadisticasUsuario" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 mb-5">
+                <div id="crearMateria" class="card shadow-sm">
+                    <div class="card-header bg-warning text-white">
+                        <h4 class="mb-0">Crear Materia</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="crearMateriaForm">
+                            <div class="mb-3">
+                                <label for="nombreMateria" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="nombreMateria" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="grupoId" class="form-label">ID Grupo</label>
+                                <input type="number" class="form-control" id="grupoId" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="profesorId" class="form-label">ID Profesor</label>
+                                <input type="number" class="form-control" id="profesorId" required>
+                            </div>
+                            <button type="submit" class="btn btn-warning">Crear Materia</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
